@@ -5,63 +5,93 @@ var { buildSchema } = require('graphql');
 
 // Construct a schema, using GraphQL schema language
 var schema = buildSchema(`
-  type Option {
+  type Item {
     id: ID,
     value: Boolean
   }
-  type Query {
-    list: [Option]
+  type FlatItem {
+    value: Boolean
   }
-  input OptionInput {
+  type FlatList {
     id: ID,
+    list: [FlatItem]
+  }
+  type Query {
+    list: [Item],
+    listFlat: [FlatItem]
+  }
+  
+  input ItemInput {
+    id: ID,
+    value: Boolean
+  }
+  input FlatItemInput {
     value: Boolean
   }
   type Mutation {
-    updateItem(id: ID, value: Boolean): Option
-    updateList(list: [OptionInput]): [Option]
+    updateItem(id: ID, value: Boolean): Item
+    updateFlatList(list: [FlatItemInput]): [Item]
   }
 `);
 
-// If Message had any complex fields, we'd put them on this object.
-class Option {
+class Item {
   constructor(id, { value }) {
     this.id = id;
     this.value = value;
   }
 }
-
 let list = [
-  new Option('a', { value: false }),
-  new Option('b', { value: false }),
-  new Option('c', { value: false }),
-  new Option('d', { value: false }),
+  new Item('a', { value: true }),
+  new Item('b', { value: false }),
+  new Item('c', { value: false }),
+  new Item('d', { value: false }),
 ]
+class FlatItem {
+  constructor({ value }) {
+    this.value = value;
+  }
+}
+let flatList = {
+  new FlatItem({ value: true }),
+  new FlatItem({ value: true }),
+  new FlatItem({ value: false }),
+  new FlatItem({ value: false }),
+}
 
 // The root provides a resolver function for each API endpoint
 var root = {
   list: () => {
+    console.log('list query');
     return list;
+  },
+  listFlat: () => {
+    console.log('listFlat query');
+    return flatList;
+    // return list;
   },
   updateItem: ({ id, value }) => {
     console.log('updateItem: ', id, value);
     let updatedItem;
+    if(id === 'c') {
+      throw new Error(`Can't update C`)
+    }
     list = list.map(item => {
       if (item.id === id) {
         updatedItem = { ...item, value };
-        console.log(`updating: ${id}: ${updatedItem}`);
+        console.log(`updating: ${id}`, updatedItem);
         return updatedItem;
       } else {
         return item;
       }
     });
-    console.log(`updated item: `. updatedItem);
+    console.log(`updated item: `, updatedItem);
     return updatedItem;
   },
-  updateList: ( {list: updatedList }) => {
-    console.log('updateList: ', updatedList);
-    list = updatedList;
-    console.log(`updated list: `, list);
-    return list;
+  updateFlatList: ( {list: updatedList }) => {
+    console.log('updateFlatList: ', updatedList);
+    flatList = updatedList;
+    console.log(`updated flatList: `, flatList);
+    return flatList;
   },
 };
 
@@ -91,7 +121,7 @@ console.log('Running a GraphQL API server at localhost:4000/graphql');
 // #     value
 // #   }
 // # }
-// # type Option {
+// # type Item {
 // #   id: ID,
 // #   value: Boolean
 // # }
