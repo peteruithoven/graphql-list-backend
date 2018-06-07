@@ -34,7 +34,7 @@ var schema = buildSchema(`
   }
   type Mutation {
     updateItem(id: ID, value: Boolean): Item
-    updateFlatList(list: FlatListInput): FlatList
+    updateFlatList(flatList: FlatListInput): FlatList
   }
 `);
 
@@ -101,7 +101,7 @@ var root = {
     console.log(`updated item: `, updatedItem);
     return updatedItem;
   },
-  updateFlatList: ( {list: updatedList }) => {
+  updateFlatList: ( {flatList: updatedList }) => {
     console.log('updateFlatList: ', updatedList);
     flatList = updatedList;
     console.log(`updated flatList: `, flatList);
