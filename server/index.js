@@ -18,7 +18,7 @@ var schema = buildSchema(`
   }
   type Query {
     list: [Item],
-    listFlat: [FlatItem]
+    flatList: FlatList
   }
   
   input ItemInput {
@@ -28,9 +28,13 @@ var schema = buildSchema(`
   input FlatItemInput {
     value: Boolean
   }
+  input FlatListInput {
+    id: ID
+    list: [FlatItemInput]
+  }
   type Mutation {
     updateItem(id: ID, value: Boolean): Item
-    updateFlatList(list: [FlatItemInput]): [Item]
+    updateFlatList(list: FlatListInput): FlatList
   }
 `);
 
@@ -51,12 +55,22 @@ class FlatItem {
     this.value = value;
   }
 }
-let flatList = {
-  new FlatItem({ value: true }),
-  new FlatItem({ value: true }),
-  new FlatItem({ value: false }),
-  new FlatItem({ value: false }),
+class FlatList {
+  constructor(id, { list }) {
+    this.id = id;
+    this.list = list;
+  }
 }
+let flatList = new FlatList('a',
+  {
+    list: [
+      new FlatItem({ value: true }),
+      new FlatItem({ value: true }),
+      new FlatItem({ value: false }),
+      new FlatItem({ value: false }),
+    ]
+  }
+);
 
 // The root provides a resolver function for each API endpoint
 var root = {
@@ -64,8 +78,8 @@ var root = {
     console.log('list query');
     return list;
   },
-  listFlat: () => {
-    console.log('listFlat query');
+  flatList: () => {
+    console.log('flatList query');
     return flatList;
     // return list;
   },
